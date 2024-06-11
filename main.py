@@ -1,9 +1,12 @@
 import requests
+from twilio.rest import Client
 
 STOCK = "TSLA"
 COMPANY_NAME = "Tesla Inc"
 STOCK_API_KEY = "KY2MZI2P1U1GSU31"
 NEWS_API_KEY = "9aec1dd0fd6d477c9459e2327937d753"
+TWILIO_ACCOUNT_SID = "AC460ce69a64b5a2ba8a8572e00ab9dc44"
+TWILIO_AUTH_TOKEN = "039e07e06341ef1c1df3ea08efd283fc"
 
 stock_parameters = {
     "function": "TIME_SERIES_DAILY",
@@ -18,6 +21,13 @@ news_parameters = {
 
 ## STEP 1: Use https://www.alphavantage.co
 # When STOCK price increase/decreases by 5% between yesterday and the day before yesterday then print("Get News").
+
+## STEP 2: Use https://newsapi.org
+# Instead of printing ("Get News"), actually get the first 3 news pieces for the COMPANY_NAME.
+
+## STEP 3: Use https://www.twilio.com
+# Send a seperate message with the percentage change and each article's title and description to your phone number.
+
 response = requests.get(url="https://www.alphavantage.co/query", params=stock_parameters)
 response.raise_for_status()
 stock_data = response.json()
@@ -37,13 +47,15 @@ if diff_in_percents > 1:
     news_data = news_response.json()
     first_three_articles = news_data["articles"][0:3]
 
+    formatted_articles = [f'Headline: {article["title"]}. \nBrief: {article["description"]}' for article in first_three_articles]
 
-
-## STEP 2: Use https://newsapi.org
-# Instead of printing ("Get News"), actually get the first 3 news pieces for the COMPANY_NAME. 
-
-## STEP 3: Use https://www.twilio.com
-# Send a seperate message with the percentage change and each article's title and description to your phone number. 
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    for article in formatted_articles:
+        message = client.messages.create(
+            body=article,
+            from_="+13346895033",
+            to="+381640250175"
+        )
 
 
 #Optional: Format the SMS message like this: 
